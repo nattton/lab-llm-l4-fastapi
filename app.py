@@ -47,7 +47,33 @@ async def health_check():
 
 @app.post("/openai/grammar")
 async def openai_grammar(request: GrammarTaskRequest) -> GrammarTaskResponse:
-    # TODO: write logic codes
-    return {"text": "TODO"}
+    style_prompts = {
+        "informal": "Using informal words like talking to a friend.",
+        "ielts": "Using very fancy words.",
+        "formal": "Using formal words.",
+        "acedemic": "Using academic words suitable for acedemic publications.",
+        "default": ""
+    }
+
+    text = request.text
+    style = request.style
+    response = await client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {
+            "role": "system",
+            "content": "You will be provided with statements, and your task is to convert them to standard English." + style_prompts[style]
+        },
+        {
+            "role": "user",
+            "content": text
+        }
+    ],
+        temperature=0.7,
+        max_tokens=64,
+        top_p=1
+    )
+
+    return {"text": response.choices[0].message.content}
 
 ########################################################################################
